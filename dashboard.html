@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IoT Health Monitoring Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #1f4037, #99f2c8);
+            text-align: center;
+            color: white;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: white;
+            color: black;
+            padding: 25px;
+            width: 300px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .encrypted {
+            background: #000;
+            color: #00ff88;
+            font-family: monospace;
+        }
+
+        .status-normal {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-danger {
+            color: red;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🏥 IoT Health Monitoring Dashboard</h1>
+
+    <div class="container">
+
+        <!-- ORIGINAL DATA -->
+        <div class="card">
+            <h2>Original Data</h2>
+            <p>❤️ Heart Rate: <span id="hr">--</span> bpm</p>
+            <p>🌡 Temperature: <span id="temp">--</span> °C</p>
+            <p>📈 ECG: <span id="ecg">--</span></p>
+            <p>Status: <span id="status">Checking...</span></p>
+        </div>
+
+        <!-- ENCRYPTED DATA -->
+        <div class="card encrypted">
+            <h2>Encrypted Data</h2>
+            <p id="encryptedData">Waiting for data...</p>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        Data refreshes every 20 seconds | Powered by ESP32 + ThingSpeak + Twilio
+    </div>
+
+<script>
+
+    // 🔴 PUT YOUR CHANNEL ID HERE
+    const channelID = "3273979";
+
+    async function fetchData() {
+
+        try {
+            const url = `https://api.thingspeak.com/channels/${3273979}/feeds/last.json`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            let hr = parseInt(data.field1);
+            let temp = parseFloat(data.field2);
+            let ecg = parseInt(data.field3);
+
+            document.getElementById("hr").innerText = hr;
+            document.getElementById("temp").innerText = temp;
+            document.getElementById("ecg").innerText = ecg;
+
+            // Status Logic
+            if (hr > 100) {
+                document.getElementById("status").innerHTML = 
+                    "<span class='status-danger'>🚨 DANGER</span>";
+            } else {
+                document.getElementById("status").innerHTML = 
+                    "<span class='status-normal'>✅ NORMAL</span>";
+            }
+
+            // Create encrypted demo (Base64 simulation)
+            let original = hr + "," + temp + "," + ecg;
+            let encrypted = btoa(original);
+
+            document.getElementById("encryptedData").innerText = encrypted;
+
+        } catch (error) {
+            console.log("Error fetching data");
+        }
+    }
+
+    // Load immediately
+    fetchData();
+
+    // Auto refresh every 20 seconds
+    setInterval(fetchData, 20000);
+
+</script>
+
+</body>
+</html>
